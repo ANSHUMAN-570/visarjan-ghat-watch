@@ -48,7 +48,8 @@ python -m http.server 8000 -d site      # open http://localhost:8000 (keep `stre
 * Sections: hero, numbered features 01-08 (only implemented features; AI summary, map and data upload are labelled
   **Upcoming**), how it works, benefits, about, FAQ, final call to action, footer.
 * Dark/light mode: follows the device setting on first visit, remembers the choice in `localStorage`, set before first paint.
-* The dashboard URL is set once in `<meta name="dashboard-url">` in `site/index.html` (default `http://localhost:8501`).
+* The dashboard URL is set once in `<meta name="dashboard-url">` in `site/index.html`. It points to the hosted dashboard
+  (https://anshuman-570-visarjan-ghat-watch-app-mmpnpx.streamlit.app/); change it to `http://localhost:8501` to test against a local dashboard.
 
 ### Deploying the landing page to Vercel
 `vercel.json` (repo root) serves `site/` as a static site: framework preset "Other", no install, no build, clean URLs,
@@ -58,8 +59,8 @@ security headers (including a Content-Security-Policy) and a 7-day cache for `si
    root; `vercel.json` sets everything else. (CLI alternative: `npx vercel` from the repo root, then `npx vercel --prod`.)
 2. **Point the buttons at a hosted dashboard.** Vercel hosts only the landing page - it cannot run the Streamlit app, which
    needs a long-running Python server. Deploy `app.py` somewhere that runs Streamlit (for example Streamlit Community Cloud),
-   then put that URL in `<meta name="dashboard-url">` in `site/index.html`. Until then, the "Get Started" / "Open dashboard"
-   buttons point to `localhost:8501` and only work on your own machine.
+   then put that URL in `<meta name="dashboard-url">` in `site/index.html`. The dashboard is hosted on Streamlit Community
+   Cloud (main file `app.py`, Python 3.12) and redeploys automatically when `main` is pushed.
 3. If you edit the inline `<script>` in the `<head>` of `site/index.html`, run `python scripts/update_csp_hash.py` so the
    Content-Security-Policy still allows it.
 
