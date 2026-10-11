@@ -48,8 +48,6 @@ python -m http.server 8000 -d site      # open http://localhost:8000 (keep `stre
 * Sections: hero, numbered features 01-08 (only implemented features; AI summary, map and data upload are labelled
   **Upcoming**), how it works, benefits, about, FAQ, final call to action, footer.
 * Dark/light mode: follows the device setting on first visit, remembers the choice in `localStorage`, set before first paint.
-* **Login is a frontend-only demo.** The project has no authentication. The form validates input but creates no account,
-  sends nothing and stores nothing; there is no "Forgot password" link because recovery is not supported.
 * The dashboard URL is set once in `<meta name="dashboard-url">` in `site/index.html` (default `http://localhost:8501`).
 
 ### Deploying the landing page to Vercel

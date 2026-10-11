@@ -44,9 +44,6 @@ section[id], [id="top"] { scroll-margin-top: calc(var(--nav-h) + 12px); }
 .btn-primary:hover { background: var(--accent-hover); }
 .btn-secondary { background: var(--surface); color: var(--text); border-color: var(--line); }
 .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-.btn-ghost { background: transparent; color: var(--text); border-color: var(--line); padding: 9px 16px; }
-.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-.btn.block { width: 100%; }
 .icon-btn { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer; transition: border-color .2s, color .2s; }
 .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
 
@@ -187,30 +184,6 @@ h2 { font-size: clamp(1.7rem, 3vw, 2.4rem); font-weight: 800; }
 .foot-base { border-top: 1px solid var(--line); margin-top: 32px; padding-top: 18px; font-size: 14px; color: var(--muted); }
 .foot-base p { margin: 0; }
 
-/* login dialog */
-.dialog { width: min(440px, 100% - 32px); border: 1px solid var(--line); border-radius: 18px; padding: 0; background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg); }
-.dialog::backdrop { background: rgba(5, 10, 20, .55); backdrop-filter: blur(2px); }
-.dialog form { padding: 24px; }
-.dlg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.dlg-head h2 { font-size: 1.4rem; margin: 0; }
-.demo-note { display: flex; gap: 10px; font-size: 14px; background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 10px 12px; }
-.demo-note .ic { margin-top: 2px; }
-.field { margin: 16px 0; }
-.field label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
-.field input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); font: inherit; transition: border-color .2s, box-shadow .2s; }
-.field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-.field input[aria-invalid="true"] { border-color: var(--bad); }
-.pw { position: relative; }
-.pw input { padding-right: 52px; }
-.pw .icon-btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border: 0; background: transparent; }
-.pw .ic-eyeoff, .pw [aria-pressed="true"] .ic-eye { display: none; }
-.pw [aria-pressed="true"] .ic-eyeoff { display: block; }
-.err { color: var(--bad); font-size: 13px; margin: 6px 0 0; }
-.form-msg { margin: 14px 0 0; font-size: 14px; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--text); }
-.spin { display: none; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
-.btn.loading .spin { display: inline-block; }
-.btn.loading { pointer-events: none; opacity: .85; }
-@keyframes spin { to { transform: rotate(360deg); } }
 .noscript { text-align: center; padding: 12px; }
 
 /* entrance animations (only when JS runs and motion is allowed) */

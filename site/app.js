@@ -1,5 +1,5 @@
 "use strict";
-// Landing page behaviour: theme, mobile menu, active nav, entrance animations, dashboard links, login demo.
+// Landing page behaviour: theme, mobile menu, active nav, entrance animations, dashboard links.
 (function () {
   const root = document.documentElement;
   const $ = (sel) => document.querySelector(sel);
@@ -79,80 +79,4 @@
   }
 
   $("#year").textContent = String(new Date().getFullYear());
-
-  // ---- login (frontend-only demo: validates, sends nothing, stores nothing) ----------------------
-  const dialog = $("#login-dialog");
-  const form = $("#login-form");
-  const email = $("#email");
-  const password = $("#password");
-  const submit = $("#login-submit");
-  const msg = $("#login-msg");
-  const pwToggle = $("#pw-toggle");
-  let opener = null;
-
-  function setError(input, text) {
-    const err = document.getElementById(input.id + "-err");
-    err.textContent = text || "";
-    err.hidden = !text;
-    input.setAttribute("aria-invalid", text ? "true" : "false");
-  }
-  function validate() {
-    let ok = true;
-    const e = email.value.trim();
-    if (!e) { setError(email, "Enter your email address."); ok = false; }
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)) { setError(email, "Enter a valid email address, like name@example.com."); ok = false; }
-    else setError(email, "");
-    if (!password.value) { setError(password, "Enter your password."); ok = false; }
-    else if (password.value.length < 8) { setError(password, "Password must be at least 8 characters."); ok = false; }
-    else setError(password, "");
-    return ok;
-  }
-  function resetForm() {
-    form.reset();
-    [email, password].forEach((i) => setError(i, ""));
-    msg.hidden = true;
-    submit.classList.remove("loading");
-    pwToggle.setAttribute("aria-pressed", "false");
-    pwToggle.setAttribute("aria-label", "Show password");
-    password.type = "password";
-  }
-
-  $("#login-open").addEventListener("click", (e) => {
-    opener = e.currentTarget;
-    resetForm();
-    dialog.showModal();
-    email.focus();
-  });
-  $("#login-close").addEventListener("click", () => dialog.close());
-  dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); }); // backdrop click
-  dialog.addEventListener("close", () => { password.value = ""; if (opener) opener.focus(); });
-
-  pwToggle.addEventListener("click", () => {
-    const show = password.type === "password";
-    password.type = show ? "text" : "password";
-    pwToggle.setAttribute("aria-pressed", String(show));
-    pwToggle.setAttribute("aria-label", show ? "Hide password" : "Show password");
-  });
-  [email, password].forEach((i) => i.addEventListener("input", () => {
-    if (i.getAttribute("aria-invalid") === "true") validate();
-  }));
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault(); // never let the dialog form submit anywhere
-    msg.hidden = true;
-    if (!validate()) {
-      (email.getAttribute("aria-invalid") === "true" ? email : password).focus();
-      return;
-    }
-    submit.classList.add("loading");
-    submit.querySelector(".lbl").textContent = "Checking…";
-    setTimeout(() => {
-      submit.classList.remove("loading");
-      submit.querySelector(".lbl").textContent = "Log in";
-      password.value = ""; // the password is never kept, sent or stored
-      msg.textContent = "Form is valid. This is a frontend-only demo: no account exists and nothing was sent or stored. "
-        + "The dashboard itself needs no login.";
-      msg.hidden = false;
-    }, reduceMotion ? 0 : 600);
-  });
 })();
