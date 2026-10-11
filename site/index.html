@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visarjan Ghat Watch — traceable water-quality evidence for Bhopal's Visarjan ghats</title>
+  <meta name="description" content="Decision-support dashboard that turns three years of MPPCB ghat water-test results into a traceable priority list for BMC officers, with a bilingual action brief.">
+  <meta name="color-scheme" content="light dark">
+  <!-- Where the "Open dashboard" buttons point. Change this when the Streamlit app is hosted elsewhere. -->
+  <meta name="dashboard-url" content="http://localhost:8501">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <!-- Set the theme before first paint so the wrong theme never flashes. -->
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem("vgw-theme"); } catch (e) {}
+      if (t !== "light" && t !== "dark") {
+        t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", t);
+      document.documentElement.classList.add("js");
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <!-- Inline SVG icon sprite (no icon library in this project, so a small set is bundled) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-logo" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M5 19c3-5 5-5 8 0s5 5 8 0 4-4 6-2" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round"/><path d="M5 12c3-5 5-5 8 0s5 5 8 0 4-4 6-2" fill="none" stroke="var(--accent-ink)" stroke-opacity=".6" stroke-width="2.6" stroke-linecap="round"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 6.1A9.8 9.8 0 0 1 12 6c6.4 0 10 6 10 6a17 17 0 0 1-3.2 3.9M6.6 6.6A17 17 0 0 0 2 12s3.6 6 10 6a9.7 9.7 0 0 0 4.3-1M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.5"/></symbol>
+      <symbol id="i-bars" viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M9 12l2.2 2.2L15.5 10"/></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><circle cx="8" cy="14" r="1.2"/><circle cx="12" cy="9" r="1.2"/><circle cx="16" cy="13" r="1.2"/><circle cx="20" cy="7" r="1.2"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+      <symbol id="i-page" viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M9 12l2 2 4-4"/></symbol>
+      <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+      <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-6-2.500M15 22v-3.100a2.700 2.700 0 0 0-.8-2.100c2.800-.3 5.800-1.400 5.800-6.200a4.800 4.800 0 0 0-1.300-3.300 4.500 4.500 0 0 0-.1-3.300s-1.100-.3-3.500 1.300a12 12 0 0 0-6.200 0C6.500 2.700 5.400 3 5.400 3a4.500 4.500 0 0 0-.1 3.300A4.800 4.800 0 0 0 4 9.600c0 4.800 3 5.900 5.800 6.200A2.700 2.700 0 0 0 9 17.900V22"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="nav" id="top">
+    <div class="wrap nav-in">
+      <a class="brand" href="#home" aria-label="Visarjan Ghat Watch — home">
+        <svg class="logo" aria-hidden="true"><use href="#i-logo"/></svg>
+        <span>Visarjan Ghat Watch</span>
+      </a>
+
+      <nav id="menu" class="menu" aria-label="Primary">
+        <a href="#home" data-nav="home">Home</a>
+        <a href="#features" data-nav="features">Features</a>
+        <a href="#how" data-nav="how">How it works</a>
+        <a href="#about" data-nav="about">About</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+          <svg class="ic ic-moon" aria-hidden="true"><use href="#i-moon"/></svg>
+          <svg class="ic ic-sun" aria-hidden="true"><use href="#i-sun"/></svg>
+        </button>
+        <button class="btn btn-ghost" id="login-open" type="button" aria-haspopup="dialog">Login</button>
+        <button class="icon-btn burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+          <svg class="ic ic-open" aria-hidden="true"><use href="#i-menu"/></svg>
+          <svg class="ic ic-close" aria-hidden="true"><use href="#i-x"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- HERO -->
+    <section class="hero" id="home">
+      <div class="wrap hero-grid">
+        <div class="hero-copy reveal">
+          <p class="eyebrow"><span class="dot" aria-hidden="true"></span> For BMC officers · Durga Visarjan, 20 Oct 2026</p>
+          <h1>Know which Visarjan ghats to review first — and prove why.</h1>
+          <p class="lead">Visarjan Ghat Watch turns three years of MPPCB water-test reports into a traceable priority list. Every ranking links back to the exact readings and the report page they came from.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#" data-dashboard>Get Started <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            <a class="btn btn-secondary" href="#features">Explore Features</a>
+          </div>
+          <p class="fineprint"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg> Historical 2023–2025 data, a screening aid. Not live data, not an official BMC or MPPCB product.</p>
+        </div>
+
+        <figure class="hero-visual reveal" style="--d:.12s">
+          <div class="frame">
+            <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i><span>localhost:8501 · Priority ranking</span></div>
+            <img src="assets/ranking.png" width="1400" height="1000" alt="Screenshot of the Priority ranking tab: seven Bhopal ghats sorted by priority score with DO, BOD and pH counts beside each rate." fetchpriority="high">
+          </div>
+          <figcaption>Real screenshot of the dashboard. Counts are shown beside every rate.</figcaption>
+        </figure>
+      </div>
+
+      <div class="wrap">
+        <ul class="stats reveal" aria-label="Dataset at a glance">
+          <li><strong>7</strong><span>Bhopal ghats</span></li>
+          <li><strong>1,524</strong><span>readings, 2023–2025</span></li>
+          <li><strong>42 / 116</strong><span>DO readings below 5 mg/L</span></li>
+          <li><strong>100 / 112</strong><span>BOD readings above 3 mg/L</span></li>
+          <li><strong>40 / 40</strong><span>source-page groups verified</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section" id="features" aria-labelledby="features-h">
+      <div class="wrap">
+        <header class="section-head reveal">
+          <p class="eyebrow">Features</p>
+          <h2 id="features-h">Everything the dashboard does today</h2>
+          <p class="lead">Eight working features, built around one rule: no number without a source, and no gap treated as clean.</p>
+        </header>
+
+        <ol class="features">
+          <!-- 01 -->
+          <li class="feature reveal">
+            <div class="f-text">
+              <span class="num" aria-hidden="true">01</span>
+              <div class="f-icon"><svg class="ic" aria-hidden="true"><use href="#i-grid"/></svg></div>
+              <h3>Overview computed from the data</h3>
+              <p>Summary cards for sites, observations, and DO, BOD and pH benchmark exceedances. Each exceedance shows its sample size, and a separate card counts results that cannot be scored.</p>
+              <p class="how"><b>How it works:</b> every figure is calculated from the loaded records, never typed in, and responds to the sidebar filters.</p>
+              <p class="benefit"><b>Benefit:</b> officers see the scale of the evidence before reading a single ranking.</p>
+            </div>
+            <div class="f-visual">
+              <div class="card-grid" role="img" aria-label="Dashboard figures: 7 ghats, 1,524 observations, 42 DO readings below benchmark, 100 BOD above, 6 pH outside range, 17 results that cannot be scored.">
+                <div><strong>7</strong><span>Ghat sites</span></div>
+                <div><strong>1,524</strong><span>Observations</span></div>
+                <div class="bad"><strong>42</strong><span>DO below · 36% of 116</span></div>
+                <div class="bad"><strong>100</strong><span>BOD above · 89% of 112</span></div>
+                <div class="bad"><strong>6</strong><span>pH outside · 5% of 115</span></div>
+                <div><strong>17</strong><span>Cannot be scored / 360</span></div>
+              </div>
+            </div>
+          </li>
+
+          <!-- 02 -->
+          <li class="feature reveal alt">
+            <div class="f-text">
+              <span class="num" aria-hidden="true">02</span>
+              <div class="f-icon"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></div>
+              <h3>Cross-check against the participant guide</h3>
+              <p>The guide reports three headline figures. The app recalculates each from the records and shows both side by side.</p>
+              <p class="how"><b>How it works:</b> the guide's numbers are stored as <em>reported</em> and never used as results; a match or mismatch is shown per figure.</p>
+              <p class="benefit"><b>Benefit:</b> you can show an audience that the data and the guide agree.</p>
+            </div>
+            <div class="f-visual">
+              <table class="mini">
+                <caption class="sr">Guide-reported figures versus recalculated figures</caption>
+                <thead><tr><th scope="col">Figure</th><th scope="col">Guide</th><th scope="col">Recalculated</th><th scope="col"><span class="sr">Match</span></th></tr></thead>
+                <tbody>
+                  <tr><td>DO below 5 mg/L</td><td>42 of 116</td><td>42 of 116</td><td class="ok" aria-label="matches">✓</td></tr>
+                  <tr><td>BOD above 3 mg/L</td><td>100 of 112</td><td>100 of 112</td><td class="ok" aria-label="matches">✓</td></tr>
+                  <tr><td>Bairagarh DO = 0</td><td>4 times</td><td>4 times (2023, 2025)</td><td class="ok" aria-label="matches">✓</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </li>
+
+          <!-- 03 -->
+          <li class="feature reveal">
+            <div class="f-text">
+              <span class="num" aria-hidden="true">03</span>
+              <div class="f-icon"><svg class="ic" aria-hidden="true"><use href="#i-bars"/></svg></div>
+              <h3>Transparent priority ranking</h3>
+              <p>A sortable table ranks ghats by the weighted share of valid readings outside the benchmark (DO 40%, BOD 40%, pH 20%). Pick any site to see its weights, rates and contributions.</p>
+              <p class="how"><b>How it works:</b> a parameter with no valid reading is dropped and the other weights are renormalised, never counted as zero. A site with no usable readings shows <em>“Insufficient evidence — retest”</em>, not a score.</p>
+              <p class="benefit"><b>Benefit:</b> a defensible shortlist. The weights are illustrative, not official, and the score is not a health-risk measure.</p>
+            </div>
+            <figure class="f-visual shot"><img loading="lazy" src="assets/ranking.png" width="1400" height="1000" alt="Priority ranking table with score bars and DO, BOD and pH counts beside each rate."></figure>
+          </li>
+
+          <!-- 04 -->
+          <li class="feature reveal alt">
+            <div class="f-text">
+              <span class="num" aria-hidden="true">04</span>
+              <div class="f-icon"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></div>
+              <h3>Evidence explorer</h3>
+              <p>Every observation with the original site name, the value exactly as printed, its qualifier, unit, source file and <strong>source page</strong>, plus a link to the report PDF. Search, filter, and download the rows as CSV.</p>
+              <p class="how"><b>How it works:</b> selecting a site lists the exact rows behind its score and the rows that could not be scored. A missing page shows “Source page not verified”.</p>
+              <p class="benefit"><b>Benefit:</b> any claim can be checked against the original report in seconds.</p>
+            </div>
+            <figure class="f-visual shot"><img loading="lazy" src="assets/evidence.png" width="1400" height="1000" alt="Evidence explorer table listing each observation with original site name, year, festival, phase, parameter and reported result."></figure>
+          </li>
+
+          <!-- 05 -->
+          <li class="feature reveal">
+            <div class="f-text">
+              <span class="num" aria-hidden="true">05</span>
+              <div class="f-icon"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg></div>
+              <h3>Honest handling of missing data</h3>
+              <p>Blank and “not sampled” results are missing, not clean. BDL and ND are kept as separate qualifiers and never turned into zero. Units, unreadable text and impossible values are validated and flagged, never silently dropped.</p>
+              <p class="how"><b>How it works:</b> each result gets a status; only measured numbers are scored. Nothing is imputed or averaged.</p>
+              <p class="benefit"><b>Benefit:</b> the ranking can't be flattered by gaps in the reports.</p>
+            </div>
+            <div class="f-visual">
+              <ul class="chips" aria-label="Result statuses">
+                <li class="chip good">Measured number <small>scored</small></li>
+                <li class="chip">BDL <small>kept, not zero</small></li>
+                <li class="chip">ND <small>kept, not BDL</small></li>
+                <li class="chip warn">Not sampled <small>missing ≠ clean</small></li>
+                <li class="chip warn">Blank <small>missing ≠ clean</small></li>
+                <li class="chip bad">Invalid / unit mismatch <small>flagged, excluded</small></li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- 06 -->
+          <li class="feature reveal alt">
+            <div class="f-text">
+              <span class="num" aria-hidden="true">06</span>
+              <div class="f-icon"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
+              <h3>Historical comparison</h3>
+              <p>Interactive charts plot every valid reading by site and year against the benchmark line, with valid-versus-violating counts and a coverage table.</p>
+              <p class="how"><b>How it works:</b> dots are not joined, because tests are separate events, not a continuous trend. Results that can't be plotted are counted in a caption.</p>
+              <p class="benefit"><b>Benefit:</b> see at a glance which ghats keep falling short, and where data is thin.</p>
+            </div>
+            <figure class="f-visual shot"><img loading="lazy" src="assets/history.png" width="1400" height="1000" alt="Dot chart of dissolved oxygen readings by ghat and year with a dashed benchmark line at 5 mg/L."></figure>
+          </li>
+
+          <!-- 07 -->
+          <li class="feature reveal">
+            <div class="f-text">
+              <span class="num" aria-hidden="true">07</span>
+              <div class="f-icon"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg></div>
+              <h3>Bilingual action brief</h3>
+              <p>Generate a short decision brief in English and Hindi as PDF, Markdown or CSV: top sites, supporting readings with report citations, missing-data warnings and suggested follow-ups.</p>
+              <p class="how"><b>How it works:</b> built from the same ranking and evidence the screen shows, with a bundled Devanagari font so Hindi renders correctly. The interface itself also switches between English and हिन्दी.</p>
+              <p class="benefit"><b>Benefit:</b> a document an officer can hand over, with the screening-tool caveat built in.</p>
+            </div>
+            <figure class="f-visual shot"><img loading="lazy" src="assets/brief.png" width="1400" height="1000" alt="Action brief tab with download buttons for PDF, Markdown and CSV and a preview of the brief."></figure>
+          </li>
+
+          <!-- 08 -->
+          <li class="feature reveal alt">
+            <div class="f-text">
+              <span class="num" aria-hidden="true">08</span>
+              <div class="f-icon"><svg class="ic" aria-hidden="true"><use href="#i-page"/></svg></div>
+              <h3>Source-page verification and gap warnings</h3>
+              <p>A script checks the cited pages against the three real MPPCB PDFs. The app also warns about missing test tables and uncertain site-name mappings.</p>
+              <p class="how"><b>How it works:</b> all 40 site/year/festival/page groups were found on the cited page. This is a consistency check, not a digit-by-digit audit.</p>
+              <p class="benefit"><b>Benefit:</b> known gaps are visible up front instead of discovered during the demo.</p>
+            </div>
+            <div class="f-visual">
+              <ul class="gaps">
+                <li><span class="tag ok">Verified</span> 40 of 40 table groups found on the cited PDF page</li>
+                <li><span class="tag warn">Gap</span> Bairagarh: no Durga 2025 test table in the data</li>
+                <li><span class="tag warn">Gap</span> Malikhedi: no Durga 2025 test table in the data</li>
+                <li><span class="tag warn">Review</span> Rani Kamlapati / Kamla Park: name mapping has medium confidence</li>
+              </ul>
+            </div>
+          </li>
+        </ol>
+
+        <div class="upcoming reveal">
+          <h3>Upcoming — not built yet</h3>
+          <ul>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-sparkle"/></svg><div><strong>AI-assisted summary</strong> <span class="badge">Upcoming</span><p>An optional summary that only restates computed results. Not implemented; the app is fully deterministic today.</p></div></li>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><div><strong>Map view</strong> <span class="badge">Upcoming</span><p>Needs verified ghat coordinates, which the data doesn't contain.</p></div></li>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg><div><strong>In-app data upload</strong> <span class="badge">Upcoming</span><p>New readings can be added today through a CSV and a config file; there is no upload screen yet.</p></div></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section alt-bg" id="how" aria-labelledby="how-h">
+      <div class="wrap">
+        <header class="section-head reveal">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-h">From long PDFs to a shortlist, in six steps</h2>
+        </header>
+        <ol class="steps">
+          <li class="reveal"><span class="step-n" aria-hidden="true">1</span><h3>Load the MPPCB data</h3><p>1,524 readings from the 2023–2025 reports, as extracted by the hackathon organisers. Every row keeps its report file and page.</p></li>
+          <li class="reveal" style="--d:.05s"><span class="step-n" aria-hidden="true">2</span><h3>Validate and classify</h3><p>Each result becomes measured, BDL, ND, not sampled, missing, or invalid. Units and implausible values are checked.</p></li>
+          <li class="reveal" style="--d:.1s"><span class="step-n" aria-hidden="true">3</span><h3>Compare with benchmarks</h3><p>Measured DO, BOD and pH values are compared with the CPCB Class B bathing-water benchmarks stated in the guide.</p></li>
+          <li class="reveal" style="--d:.15s"><span class="step-n" aria-hidden="true">4</span><h3>Rank transparently</h3><p>A weighted violation-rate score with counts beside every rate. Sites without usable readings are marked for retesting.</p></li>
+          <li class="reveal" style="--d:.2s"><span class="step-n" aria-hidden="true">5</span><h3>Trace the evidence</h3><p>Open the exact rows behind any score, with the report page and a link to the PDF.</p></li>
+          <li class="reveal" style="--d:.25s"><span class="step-n" aria-hidden="true">6</span><h3>Download the brief</h3><p>Get a bilingual PDF, Markdown or CSV to guide fresh sampling before 20 October.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- BENEFITS -->
+    <section class="section" id="benefits" aria-labelledby="benefits-h">
+      <div class="wrap">
+        <header class="section-head reveal">
+          <p class="eyebrow">Benefits</p>
+          <h2 id="benefits-h">Built to be trusted, not just to look good</h2>
+        </header>
+        <ul class="benefits">
+          <li class="reveal"><h3>Traceable</h3><p>Every number points to a report file and page.</p></li>
+          <li class="reveal" style="--d:.05s"><h3>Honest about gaps</h3><p>Missing is never clean. Gaps and uncertain mappings are flagged.</p></li>
+          <li class="reveal" style="--d:.1s"><h3>Deterministic</h3><p>The same data always gives the same ranking; ties break by name.</p></li>
+          <li class="reveal" style="--d:.15s"><h3>Bilingual</h3><p>English and Hindi interface and brief, with correctly rendered Devanagari.</p></li>
+          <li class="reveal" style="--d:.2s"><h3>Runs anywhere</h3><p>No API key, no internet needed, no paid services.</p></li>
+          <li class="reveal" style="--d:.25s"><h3>Tested</h3><p>64 automated tests cover benchmarks, missing-data rules, ranking maths and exports.</p></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="section alt-bg" id="about" aria-labelledby="about-h">
+      <div class="wrap about">
+        <div class="reveal">
+          <p class="eyebrow">About</p>
+          <h2 id="about-h">A screening aid for a real deadline</h2>
+          <p>Visarjan Ghat Watch was built for the Bhopal Impact Lab 2026 (Track 2). Durga Visarjan falls on 20 October 2026, and the MPPCB results from earlier years sit in 90–120 page PDFs that are hard to compare. The tool helps an officer decide where to look first.</p>
+          <p>It is a decision-support project on historical data. It has no live government data, makes no health claims, and is not an official BMC or MPPCB product. Official testing and municipal judgement decide.</p>
+        </div>
+        <aside class="limits reveal" style="--d:.1s" aria-label="Known limitations">
+          <h3>Known limitations</h3>
+          <ul>
+            <li>Data covers 2023–2025 only, with no calendar dates.</li>
+            <li>The reports print no units; standard units are assumed.</li>
+            <li>Only DO, BOD and pH are benchmarked; coliform is not in the data.</li>
+            <li>Score weights are illustrative, not official.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq" aria-labelledby="faq-h">
+      <div class="wrap narrow">
+        <header class="section-head reveal">
+          <p class="eyebrow">FAQ</p>
+          <h2 id="faq-h">Common questions</h2>
+        </header>
+        <div class="faq reveal">
+          <details><summary>Is this live water-quality data?<svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg></summary><p>No. It uses MPPCB test results from 2023–2025. They may not reflect conditions on 20 October 2026, which is why the app recommends fresh sampling.</p></details>
+          <details><summary>What does the priority score mean?<svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg></summary><p>It is the weighted share of valid readings outside the benchmark (DO 40%, BOD 40%, pH 20%). The weights are an illustrative project choice, and the score is not a health risk, a concentration or a legal category.</p></details>
+          <details><summary>How are missing, BDL and ND results treated?<svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg></summary><p>Blank and “not sampled” results are missing, not clean. BDL and ND are kept as reported and never converted to zero or scored. A site with no usable readings is marked “Insufficient evidence — retest”.</p></details>
+          <details><summary>Which benchmarks are used?<svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg></summary><p>CPCB Class B (outdoor bathing) as stated in the participant guide: dissolved oxygen at least 5 mg/L, BOD at most 3 mg/L, pH 6.5–8.5. These are not limits for every water use.</p></details>
+          <details><summary>Does it need an internet connection or an API key?<svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg></summary><p>No. Everything runs locally and deterministically. An optional AI summary is listed as upcoming and is not part of the app.</p></details>
+          <details><summary>Is there a real login?<svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg></summary><p>No. The dashboard has no accounts. The Login button on this page opens a frontend-only demo form: it validates input but creates no account, sends nothing and stores nothing.</p></details>
+          <details><summary>Can I add more data?<svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg></summary><p>Yes. Add a CSV with the same columns and map its report files in the config. See data/README.md in the repository. An upload screen is upcoming.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="cta-final" aria-labelledby="cta-h">
+      <div class="wrap reveal">
+        <h2 id="cta-h">Review the evidence before 20 October</h2>
+        <p>Open the dashboard, rank the ghats, and download a bilingual brief.</p>
+        <div class="cta-row center">
+          <a class="btn btn-primary" href="#" data-dashboard>Open dashboard <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-secondary" href="#features">Review features</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap foot-grid">
+      <div>
+        <a class="brand" href="#home"><svg class="logo" aria-hidden="true"><use href="#i-logo"/></svg><span>Visarjan Ghat Watch</span></a>
+        <p class="muted">Traceable water-quality evidence for Bhopal's Visarjan ghats. Built for the Bhopal Impact Lab 2026, Track 2.</p>
+      </div>
+      <nav aria-label="Footer"><h3>Explore</h3><ul>
+        <li><a href="#home">Home</a></li><li><a href="#features">Features</a></li><li><a href="#how">How it works</a></li><li><a href="#faq">FAQ</a></li><li><a href="#about">About</a></li></ul></nav>
+      <div><h3>Project</h3><ul>
+        <li><a href="#" data-dashboard>Open dashboard</a></li>
+        <li><a href="https://github.com/ANSHUMAN-570/visarjan-ghat-watch" rel="noopener" target="_blank"><svg class="ic" aria-hidden="true"><use href="#i-github"/></svg> Source code</a></li></ul></div>
+    </div>
+    <div class="wrap foot-base">
+      <p>© <span id="year">2026</span> Visarjan Ghat Watch · MIT License. Historical data only; a screening aid, not a substitute for official testing.</p>
+    </div>
+  </footer>
+
+  <!-- LOGIN (frontend-only demo) -->
+  <dialog id="login-dialog" class="dialog" aria-labelledby="login-title" aria-describedby="login-demo">
+    <form id="login-form" method="dialog" novalidate>
+      <div class="dlg-head">
+        <h2 id="login-title">Log in</h2>
+        <button class="icon-btn" type="button" id="login-close" aria-label="Close login"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+      </div>
+      <p id="login-demo" class="demo-note"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg><span><strong>Frontend-only demo.</strong> The dashboard has no accounts. This form validates input only; nothing is sent, created or stored.</span></p>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" aria-describedby="email-err" required>
+        <p class="err" id="email-err" role="alert" hidden></p>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="pw">
+          <input id="password" name="password" type="password" autocomplete="current-password" aria-describedby="password-err" required minlength="8">
+          <button type="button" class="icon-btn" id="pw-toggle" aria-label="Show password" aria-pressed="false">
+            <svg class="ic ic-eye" aria-hidden="true"><use href="#i-eye"/></svg>
+            <svg class="ic ic-eyeoff" aria-hidden="true"><use href="#i-eye-off"/></svg>
+          </button>
+        </div>
+        <p class="err" id="password-err" role="alert" hidden></p>
+      </div>
+
+      <button class="btn btn-primary block" type="submit" id="login-submit"><span class="lbl">Log in</span><span class="spin" aria-hidden="true"></span></button>
+      <p class="form-msg" id="login-msg" role="status" aria-live="polite" hidden></p>
+    </form>
+  </dialog>
+
+  <noscript><p class="noscript">JavaScript is needed for the theme switch, menu and login demo. The rest of this page works without it.</p></noscript>
+  <script src="app.js" defer></script>
+</body>
+</html>

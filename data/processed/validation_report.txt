@@ -1,0 +1,4 @@
+rows: 1524
+status counts: {'measured': 1289, 'bdl': 174, 'not_sampled': 61}
+issues: 1
+[warning] site_mapping_review: Site name mapping for 'Rani Kamlapati ghat / Kamla Park kund' has 'medium' confidence - manual review recommended.

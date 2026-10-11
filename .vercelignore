@@ -1,0 +1,4 @@
+# Upload only the static landing page and its config to Vercel
+/*
+!/site
+!/vercel.json

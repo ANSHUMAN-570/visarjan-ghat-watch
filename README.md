@@ -1,89 +1,136 @@
 # Visarjan Ghat Watch
 
-Bhopal Impact Lab 2026, Track 2. Turns three years of MPPCB ghat water tests into a ranked risk list and a one-page
-Hindi + English brief **before Durga visarjan (20 Oct 2026)**.
+Decision-support dashboard for Bhopal Municipal Corporation (BMC) officers. It turns three years of MPPCB ghat water-test
+results (2023-2025) into a traceable priority list, so officers can decide **where to review and retest first before Durga
+Visarjan on 20 October 2026**. Built for the Bhopal Impact Lab 2026, Track 2.
 
-**Team:** [TEAM NAME] — [member 1], [member 2], [member 3], [member 4]  *(fill in before submitting)*
+**Team:** [TEAM NAME] - [member 1], [member 2], [member 3], [member 4] *(fill in before submitting)*
 
-## The one user
-A **BMC officer planning Durga visarjan**. They need to decide which ghats get cleaning, aeration or a fresh water
-test first. This tool gives them a ranked list of the 7 Bhopal ghats, a plain-language reason for each, the exact
-readings (with report page) behind every number, and a printable brief.
+> **Historical data only.** The readings are MPPCB test results from 2023-2025. They do not describe conditions on 20 October
+> 2026, the app has no live government data, and it is a screening aid - not a substitute for official testing or municipal
+> judgement. It is not an official BMC or MPPCB product.
+
+## The problem
+The MPPCB results sit in 90-120 page PDFs. Nobody compares them against the bathing-water benchmarks, across ghats or across
+years. The officer needs: which ghats to look at first, why, and exactly which readings (and report pages) support that.
+
+## Features
+* **Overview** - counts computed from the loaded data (sites, observations, DO / BOD / pH benchmark exceedances with sample
+  sizes, results that cannot be scored), a recalculation of the participant guide's reported figures, data coverage and gaps.
+* **Priority ranking** - sortable table; transparent score with counts beside every rate; "how this score was computed" per site;
+  *Insufficient evidence - retest* instead of a made-up score.
+* **Evidence explorer** - every observation with original site name, report as printed, qualifier, unit, source file, **source
+  page** (with a link to the PDF at that page), mapping confidence; searchable and filterable; rows behind each site's score.
+* **Historical comparison** - readings against the benchmark line (dots are not joined into fake trends), valid/violation counts,
+  year coverage.
+* **Action brief** - bilingual (English + Hindi) decision brief as **PDF** (bundled Devanagari font, rendering checked), Markdown
+  and CSV; ranking and evidence CSVs.
+* English / Hindi interface, filters by site, year, festival, parameter and observation status.
+
+Screenshots: `docs/screenshots/`.
 
 ## Run it (5 steps)
+Python 3.10+ (developed on 3.12).
 ```bash
-git clone <this-repo-url> && cd visarjan-ghat-watch     # 1. get the code
-pip install -r requirements.txt                          # 2. Python 3.10+
-streamlit run app.py                                     # 3. open the app (language toggle: English / हिन्दी)
-python -m visarjan.cli --festival Durga --lang both --out brief.html   # 4. or write the brief directly
-python -m pytest -q                                      # 5. check the numbers (27 tests)
+git clone <this-repo-url> && cd visarjan-ghat-watch      # 1. get the code
+python -m venv .venv && source .venv/bin/activate        # 2. virtual environment (Windows: .venv\Scripts\activate)
+pip install -r requirements.txt                          # 3. install
+streamlit run app.py                                     # 4. open http://localhost:8501
+python -m pytest -q                                      # 5. optional: run the tests
 ```
-Open `brief.html` in a browser and print to PDF. A sample is in `examples/brief_durga.html`.
+No API key or internet connection is needed.
 
-### JavaScript front end (static page, no framework)
+## Landing page (`site/`)
+A static, dependency-free landing page (HTML, CSS, vanilla JS) that presents the project and links to the dashboard.
 ```bash
-python -m visarjan.export                 # scores in Python -> web/data.json + printable briefs
-python -m http.server -d web 8000         # open http://localhost:8000
+python -m http.server 8000 -d site      # open http://localhost:8000 (keep `streamlit run app.py` running for the dashboard links)
 ```
-`web/` is plain HTML/CSS/JS (`index.html`, `app.js`, `style.css`) that renders `data.json`; it has no build step and can be
-hosted on GitHub Pages. All scoring stays in Python, so both front ends show identical numbers. Re-run the export after
-changing data or scoring.
+* Sections: hero, numbered features 01-08 (only implemented features; AI summary, map and data upload are labelled
+  **Upcoming**), how it works, benefits, about, FAQ, final call to action, footer.
+* Dark/light mode: follows the device setting on first visit, remembers the choice in `localStorage`, set before first paint.
+* **Login is a frontend-only demo.** The project has no authentication. The form validates input but creates no account,
+  sends nothing and stores nothing; there is no "Forgot password" link because recovery is not supported.
+* The dashboard URL is set once in `<meta name="dashboard-url">` in `site/index.html` (default `http://localhost:8501`).
 
-## How the ranking works
-Compared against **CPCB Class B (outdoor bathing)** limits read from `data/cpcb_water_quality_criteria.csv`:
-pH 6.5–8.5, dissolved oxygen ≥ 5 mg/l, BOD ≤ 3 mg/l.
+### Deploying the landing page to Vercel
+`vercel.json` (repo root) serves `site/` as a static site: framework preset "Other", no install, no build, clean URLs,
+security headers (including a Content-Security-Policy) and a 7-day cache for `site/assets/`.
 
-Score 0–100 = **50%** share of readings beyond a limit + **30%** how far beyond + **20%** share of
-before/during/after test series where oxygen fell or BOD rose by ≥ 1 mg/l after immersion began. The first two parts
-blend the average and the worst of the three parameters, so one clean parameter cannot hide a failing one. Newer
-years weigh more. Tiers: **High ≥ 65**, **Medium ≥ 45**, else Low. Every constant is at the top of
-`visarjan/scoring.py`.
+1. Push the repo to GitHub, then in Vercel choose **Add New → Project** and import it. Leave **Root Directory** as the repo
+   root; `vercel.json` sets everything else. (CLI alternative: `npx vercel` from the repo root, then `npx vercel --prod`.)
+2. **Point the buttons at a hosted dashboard.** Vercel hosts only the landing page - it cannot run the Streamlit app, which
+   needs a long-running Python server. Deploy `app.py` somewhere that runs Streamlit (for example Streamlit Community Cloud),
+   then put that URL in `<meta name="dashboard-url">` in `site/index.html`. Until then, the "Get Started" / "Open dashboard"
+   buttons point to `localhost:8501` and only work on your own machine.
+3. If you edit the inline `<script>` in the `<head>` of `site/index.html`, run `python scripts/update_csp_hash.py` so the
+   Content-Security-Policy still allows it.
 
-Every claim in the app links back to rows in the data: parameter, year, festival, phase and the **report page**.
-
-## Missing data, handled honestly
-| In the data | Treated as |
-|---|---|
-| `BDL`, `ND` | very low (not zero, not missing). Counts as within a *maximum* limit (BOD), as a failure for a *minimum* limit (oxygen) |
-| `not sampled`, `*`, `**`, blank, `_` | **missing — never counted as clean**, never plotted as zero |
-| A whole festival table absent for a ghat | flagged "data gap"; confidence marked LOW; action "take a fresh sample" |
-
-Example: Bairagarh and Malikhedi have **no Durga 2025 table**, so they are flagged as low-confidence rather than
-looking cleaner than they are.
-
-## What works / what doesn't
-**Works:** ranking for all/Durga/Ganesh and any year selection; traceable reasons; Hindi + English brief (template
-based, no AI/LLM, works offline); source page for every reading; tests against the figures in the problem statement
-(42 of 116 oxygen readings < 5; 100 of 112 BOD readings > 3; Bairagarh oxygen = 0 four times).
-
-**Doesn't / limits:**
-- Only 2023–2025 MPPCB reports. No live or current readings.
-- The reports print no units. Standard units are assumed (as in the data dictionary).
-- Only pH, oxygen and BOD have Class B limits in this dataset. Coliform (limit 500 MPN/100 ml) is **not in the data**.
-  Heavy metals have no Class B limit, so they are not scored.
-- Tier thresholds and weights are judgement calls, not an official standard. The score ranks ghats against each
-  other; it is **not a health or safety certificate** and makes no health claims.
-- "Worse after immersion began" is an observation, not proof of cause.
-- "Rani Kamlapati ghat / Kamla Park kund" may be two places (match confidence: medium).
-- The statewide file (`mp_immersion_sites_2023_2025.csv`, less checked) is not used; only the 7 Bhopal ghats are scored.
-
-## Layout
+## Project structure
 ```
-app.py                  Streamlit app: one page, work list + ranked ghats
-web/                    static JS front end (index.html, app.js, style.css, data.json)
-visarjan/export.py      writes web/data.json and briefs
-visarjan/data.py        loading, missing-data rules, CPCB limits
-visarjan/scoring.py     scoring, tiers, actions, coverage
-visarjan/brief.py       HTML / Markdown brief       visarjan/i18n.py   English + Hindi text
-visarjan/cli.py         command-line brief      visarjan/summary.py  latest Durga test vs limits
-tests/                  pytest
-data/                   organisers' CSVs (see data/DATA_DICTIONARY.md)
+app.py                       Streamlit dashboard (5 tabs, EN/HI)
+src/data_loader.py           config + CSV -> canonical, traceable table
+src/data_validation.py       schema checks, status classification (BDL/ND/not sampled), units, plausibility
+src/metrics.py               benchmark comparison, per-site/parameter statistics, guide-figure check
+src/ranking.py               transparent weighted violation-rate score
+src/evidence.py              citations, evidence rows, per-site detail, coverage gaps
+src/reports.py               bilingual brief (PDF, Markdown) and CSV exports
+src/i18n.py                  English and Hindi text
+config/thresholds.yaml       benchmarks, ILLUSTRATIVE weights, scoring rules, report-file mapping
+data/raw/, data/processed/   inputs and reproducible outputs (see data/README.md)
+docs/data_dictionary.md      schema, status codes, benchmarks, provenance
+scripts/                     verify_source_pages.py (page check against the PDFs), build_processed.py
+tests/                       pytest suite (synthetic fixtures are named "SYNTHETIC ...")
+assets/fonts/                Noto Sans + Noto Sans Devanagari (SIL OFL) for the PDF
+site/                        static landing page (index.html, styles.css, app.js, assets/ screenshots)
 ```
 
-## Data and credits
-Data and problem statement from the Bhopal Impact Lab 2026 organisers
-(https://github.com/Vishal4742/bhopal-impact-lab-2026-problem-statements, Track 2 `data/`). Original sources:
-MPPCB Ganesh & Durga visarjan reports 2023–2025 (https://www.mppcb.mp.gov.in) and CPCB water quality criteria
-(https://cpcb.gov.in/water-quality-criteria/). No API keys or personal data are used.
+## Data
+Source: MPPCB Ganesh/Durga visarjan reports 2023-2025, as extracted by the hackathon organisers
+(`data/raw/bhopal_ghats_2023_2025.csv`, 1,524 readings, 7 ghats, 13 parameters). Report links and how to add real data:
+[`data/README.md`](data/README.md). Schema and status codes: [`docs/data_dictionary.md`](docs/data_dictionary.md).
 
-Licence: MIT (see `LICENSE`).
+**Benchmarks** (from the participant guide; CPCB **Class B, outdoor bathing** - not limits for every water use):
+DO at least 5 mg/L, BOD at most 3 mg/L, pH 6.5-8.5 inclusive. Coliform is not in the dataset and is not scored.
+
+## Ranking formula - illustrative, not official
+`score = 100 x sum(w_p x violation_rate_p) / sum(w_p)` over DO, BOD and pH, where `violation_rate_p` is the share of **valid
+numeric** readings outside the benchmark. Weights: DO 40%, BOD 40%, pH 20% (`config/thresholds.yaml`).
+
+* The weights are an **illustrative project choice**, not MPPCB/CPCB weights and not a validated health-risk formula. The score is
+  not a probability of illness, a concentration or a legal category.
+* If a parameter has no valid reading it is **dropped and the other weights are renormalised**; it is never counted as zero violations.
+* A site with fewer than `min_valid_readings_per_site` (default 1) valid readings is shown as **"Insufficient evidence - retest"**
+  with no score. Counts are shown beside every rate; parameters with fewer than 3 valid readings are flagged "low sample".
+* Ties are broken by site name, so the ranking is deterministic.
+
+## Missing-data policy
+Blank and "not sampled" (`*`, `**`) are **missing, not clean**. `BDL` and `ND` are kept as separate qualifiers, never converted to
+zero and never scored (no verifiable detection limits). Units are validated against the benchmark; mismatches, unreadable text
+and impossible numbers (pH 40, negative BOD) are kept, flagged and excluded. Nothing is imputed. Original site names and source
+files/pages are preserved; an absent page is shown as "Source page not verified".
+
+## Validation done
+* `python -m pytest -q`: benchmarks incl. boundary values, missing/BDL/ND, units, ranking maths and renormalisation, determinism,
+  evidence citations, exports agreeing with the ranking, PDF validity and Devanagari text, no API key needed.
+* The guide's figures (42/116 DO, 100/112 BOD, four zero DO readings at Bairagarh in 2023 and 2025) **were recalculated from the
+  loaded data and match** (Overview tab).
+* `python scripts/verify_source_pages.py <pdf-folder>` against the real PDFs: 40 of 40 table groups found on the cited page.
+  This is a consistency check, not a digit-by-digit audit.
+* The Hindi PDF was rendered and inspected visually (conjuncts and matras correct). A native Hindi reader should still review the
+  wording in `src/i18n.py`.
+
+## Known limitations
+* Historical 2023-2025 data; **no calendar dates** in the dataset (only year, festival, phase).
+* Units are assumed (the reports print none). Only DO, BOD and pH are benchmarked; metals and others are shown but not scored.
+* Bairagarh and Malikhedi have **no Durga 2025 table** in the data (flagged). "Rani Kamlapati ghat / Kamla Park kund" may be two
+  places (medium mapping confidence). Page numbers come from the organisers' file (we spot-checked them, see above).
+* No map (no verified coordinates). No prediction. The optional Cerebras AI summary was **not implemented**; the app is fully
+  deterministic.
+* Not deployed anywhere; runs locally.
+
+## Six-minute demo
+See [`docs/DEMO.md`](docs/DEMO.md).
+
+## License
+MIT (see `LICENSE`). Fonts: SIL Open Font License (see `assets/fonts/README.md`). Data: from the hackathon organisers; reports
+are MPPCB publications.

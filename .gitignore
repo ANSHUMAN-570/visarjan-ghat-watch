@@ -1,6 +1,14 @@
 __pycache__/
 *.pyc
 .venv/
+venv/
 .pytest_cache/
-.streamlit/secrets.toml
 .env
+.env.*
+*.key
+.streamlit/secrets.toml
+.tmp_pdf/
+*.log
+data/raw/*.pdf
+
+.vercel

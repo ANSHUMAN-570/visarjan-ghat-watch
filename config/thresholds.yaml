@@ -1,0 +1,45 @@
+# Benchmarks, weights and source mapping for Visarjan Ghat Watch.
+# Every number below is a project/guide setting, not a measured result.
+
+benchmark:
+  # Stated in the Track 2 participant guide. Applies to CPCB Class B "outdoor bathing (organised)" only,
+  # NOT to every water use. Source CSV: data/raw/cpcb_water_quality_criteria.csv
+  label: "CPCB water quality criteria, Class B (outdoor bathing, organised), as stated in the Track 2 participant guide"
+  parameters:
+    Dissolved oxygen: {short: DO,  rule: min,   value: 5.0, unit: "mg/l", display: ">= 5 mg/L"}
+    BOD:              {short: BOD, rule: max,   value: 3.0, unit: "mg/l", display: "<= 3 mg/L"}
+    pH:               {short: pH,  rule: range, min: 6.5, max: 8.5, unit: "",   display: "6.5 - 8.5 (inclusive)"}
+
+# ILLUSTRATIVE project weights. Not official MPPCB/CPCB weights; not a validated health-risk formula.
+weights:
+  Dissolved oxygen: 0.40
+  BOD: 0.40
+  pH: 0.20
+
+scoring:
+  # Score = 100 * sum(w_p * violation_rate_p) / sum(w_p), over parameters that have >= 1 valid numeric reading.
+  # A parameter with no valid reading is DROPPED and the remaining weights are renormalised. It is never
+  # counted as "0 violations".
+  renormalize_missing_parameters: true
+  min_valid_readings_per_site: 1     # fewer total valid DO/BOD/pH readings -> "Insufficient evidence - retest"
+  low_sample_threshold: 3            # a parameter with fewer valid readings than this is flagged "low sample"
+
+# Plausibility limits. Values outside these are marked invalid (kept in the data, never scored).
+plausible:
+  pH: {min: 0, max: 14}
+  Dissolved oxygen: {min: 0, max: 30}
+  BOD: {min: 0, max: 1000}
+
+# Report file for each year, as documented in data/raw/DATA_DICTIONARY.md ("PDF page in that year's report").
+sources:
+  2025: {file: "Ganesh_and_Durga_visarjan_report-2025.pdf", url: "https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2025.pdf"}
+  2024: {file: "Ganesh_and_Durga_visarjan_report-2024.pdf", url: "https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2024.pdf"}
+  2023: {file: "Idol_immer._Report_23_CPCB.pdf",             url: "https://www.mppcb.mp.gov.in/proc/mon/Idol_immer._Report_23_CPCB.pdf"}
+
+# Figures the participant guide REPORTS. They are shown next to our recalculation and are never used as results.
+guide_reported:
+  do_below_benchmark: {count: 42, of: 116}
+  bod_above_benchmark: {count: 100, of: 112}
+  bairagarh_do_zero: {site: "Bairagarh (Sant Hirdaram) kund", count: 4, years: [2023, 2025]}
+
+visarjan_date: "2026-10-20"
