@@ -129,3 +129,51 @@ def render_reason(r: dict, lang: str) -> str:
     if kind == "gap_event":
         return t[kind].format(year=r["year"], festival=ui["festival"].get(r["festival"], r["festival"]))
     return t[kind].format(**{k: v for k, v in r.items() if k != "type"})
+
+
+APP = {
+    "en": {
+        "days_left": "{n} days to Durga visarjan (20 Oct 2026)",
+        "days_today": "Durga visarjan is today (20 Oct 2026)",
+        "tagline": "Which ghats need cleaning, aeration or a fresh water test before visarjan - from 3 years of MPPCB test reports.",
+        "dispatch_title": "Work list",
+        "list": {"clean": "Send cleaning crew", "aerate": "Arrange aeration", "retest": "Take fresh water sample"},
+        "none": "None",
+        "gap_mark": "data gap",
+        "incl_ganesh": "Also use Ganesh visarjan tests (same lakes, more evidence)",
+        "ranking_title": "Ghats, highest risk first",
+        "latest_title": "Latest {festival} test ({year}) against the limit",
+        "latest_none": "No {festival} test table for this ghat.",
+        "limit_row": "Limit",
+        "ok": "within limit", "bad": "beyond limit",
+        "all_readings": "All readings with report page",
+        "download": "Download brief (Hindi + English, print to PDF)",
+        "col_param": "Parameter", "col_festival": "Festival", "col_year": "Year", "col_phase": "Phase", "col_value": "Printed value",
+        "col_page": "Report page", "col_state": "Status",
+        "state": {"value": "measured", "very_low": "below detection", "missing": "MISSING - not counted as clean"},
+        "footer": "Ranking aid only, not a health or safety certificate. Missing readings are never counted as clean. "
+                  "Units assumed (reports print none). No coliform data.",
+    },
+    "hi": {
+        "days_left": "दुर्गा विसर्जन (20 अक्टूबर 2026) में {n} दिन शेष",
+        "days_today": "दुर्गा विसर्जन आज है (20 अक्टूबर 2026)",
+        "tagline": "विसर्जन से पहले किन घाटों पर सफ़ाई, वायुकरण या नए पानी की जाँच चाहिए - MPPCB की 3 वर्षों की जाँच रिपोर्टों से।",
+        "dispatch_title": "कार्य-सूची",
+        "list": {"clean": "सफ़ाई दल भेजें", "aerate": "वायुकरण कराएँ", "retest": "पानी का नया नमूना लें"},
+        "none": "कोई नहीं",
+        "gap_mark": "डेटा अधूरा",
+        "incl_ganesh": "गणेश विसर्जन की जाँचें भी लें (वही झीलें, अधिक प्रमाण)",
+        "ranking_title": "घाट - सबसे अधिक जोखिम पहले",
+        "latest_title": "नवीनतम {festival} जाँच ({year}) - मानक के विरुद्ध",
+        "latest_none": "इस घाट की {festival} जाँच तालिका नहीं है।",
+        "limit_row": "मानक",
+        "ok": "मानक के भीतर", "bad": "मानक से बाहर",
+        "all_readings": "रिपोर्ट पृष्ठ सहित सभी रीडिंग",
+        "download": "संक्षिप्त रिपोर्ट डाउनलोड करें (हिन्दी + English, PDF के लिए प्रिंट करें)",
+        "col_param": "पैरामीटर", "col_festival": "त्योहार", "col_year": "वर्ष", "col_phase": "चरण", "col_value": "छपा मान",
+        "col_page": "रिपोर्ट पृष्ठ", "col_state": "स्थिति",
+        "state": {"value": "मापा गया", "very_low": "पहचान सीमा से कम", "missing": "उपलब्ध नहीं - साफ़ नहीं माना गया"},
+        "footer": "यह केवल प्राथमिकता तय करने का साधन है, स्वास्थ्य या सुरक्षा प्रमाणपत्र नहीं। अनुपलब्ध रीडिंग को कभी साफ़ नहीं माना गया। "
+                  "इकाइयाँ मानी गई हैं (रिपोर्ट में नहीं छपीं)। कोलीफ़ॉर्म डेटा नहीं है।",
+    },
+}

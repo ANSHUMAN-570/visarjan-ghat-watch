@@ -145,3 +145,15 @@ def test_brief_never_drops_data_gap_warning():
     md = to_markdown(res, "en", "Durga")
     bairagarh = md.split("## 1.")[1].split("## 2.")[0]
     assert "No Durga 2025 test table" in bairagarh and "NOT counted as clean" in bairagarh
+
+
+def test_latest_check_uses_newest_festival_test_and_flags_breaches():
+    from visarjan.summary import latest_check
+    site = [s for s in R.site.unique() if s.startswith("Bairagarh")][0]
+    year, table = latest_check(R, L, site, "Durga")
+    assert year == 2024  # no Durga 2025 table for Bairagarh
+    assert set(table) == {"pH", "Dissolved oxygen", "BOD"}
+    assert all(state in ("ok", "violation", "missing") for row in table.values() for _, state in row.values())
+    other = [s for s in R.site.unique() if s.startswith("Shahpura")][0]
+    assert latest_check(R, L, other, "Durga")[0] == 2025
+    assert latest_check(R, L, site, "NoSuchFestival") == (None, {})

@@ -17,7 +17,7 @@ def _scope(lang: str, festival: str | None, years: list[int] | None) -> str:
     return f"{fest}; {ui['years']}: {yrs}"
 
 
-def _top_reasons(g: GhatResult) -> list[dict]:
+def top_reasons(g: GhatResult) -> list[dict]:
     """Top findings, plus every data-gap warning: gaps must never be cut for length."""
     findings = [r for r in g.reasons if not r["type"].startswith("gap_")]
     gaps = [r for r in g.reasons if r["type"].startswith("gap_")]
@@ -34,7 +34,7 @@ def to_markdown(results: list[GhatResult], lang: str, festival: str | None = Non
         lines.append(f"| {g.rank} | {g.site} | {ui['tier'][g.tier]} | {g.score:.0f} | {conf} |")
     for g in results:
         lines += ["", f"## {g.rank}. {g.site} ({g.water_body}) - {ui['tier'][g.tier]}, {g.score:.0f}/100", ""]
-        lines += [f"- {render_reason(r, lang)}" for r in _top_reasons(g)]
+        lines += [f"- {render_reason(r, lang)}" for r in top_reasons(g)]
         lines += ["", f"**{ui['actions']}:**"] + [f"- {ui['action'][a]}" for a in g.actions]
     lines += ["", f"**{ui['limits_title']}:** {ui['limits']}", "", f"**{ui['method_title']}:** {ui['method']}", "",
               f"**{ui['limitations_title']}**", ""] + [f"- {x}" for x in ui["limitations"]]
@@ -54,7 +54,7 @@ def _section_html(results: list[GhatResult], lang: str, festival: str | None, ye
             f"<td>{g.score:.0f}</td><td>{'&#9888; ' if g.low_confidence else ''}{e(conf)}</td></tr>")
     cards = []
     for g in results:
-        reasons = "".join(f"<li>{e(render_reason(r, lang))}</li>" for r in _top_reasons(g))
+        reasons = "".join(f"<li>{e(render_reason(r, lang))}</li>" for r in top_reasons(g))
         actions = "".join(f"<li>{e(ui['action'][a])}</li>" for a in g.actions)
         cards.append(
             f"<div class='card'><h3>{g.rank}. {e(g.site)} <small>({e(g.water_body)})</small> "

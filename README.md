@@ -16,7 +16,7 @@ git clone <this-repo-url> && cd visarjan-ghat-watch     # 1. get the code
 pip install -r requirements.txt                          # 2. Python 3.10+
 streamlit run app.py                                     # 3. open the app (language toggle: English / हिन्दी)
 python -m visarjan.cli --festival Durga --lang both --out brief.html   # 4. or write the brief directly
-python -m pytest -q                                      # 5. check the numbers (25 tests)
+python -m pytest -q                                      # 5. check the numbers (26 tests)
 ```
 Open `brief.html` in a browser and print to PDF. A sample is in `examples/brief_durga.html`.
 
@@ -60,11 +60,11 @@ based, no AI/LLM, works offline); source page for every reading; tests against t
 
 ## Layout
 ```
-app.py                  Streamlit app
+app.py                  Streamlit app: one page, work list + ranked ghats
 visarjan/data.py        loading, missing-data rules, CPCB limits
 visarjan/scoring.py     scoring, tiers, actions, coverage
 visarjan/brief.py       HTML / Markdown brief       visarjan/i18n.py   English + Hindi text
-visarjan/cli.py         command-line brief
+visarjan/cli.py         command-line brief      visarjan/summary.py  latest Durga test vs limits
 tests/                  pytest
 data/                   organisers' CSVs (see data/DATA_DICTIONARY.md)
 ```

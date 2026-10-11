@@ -1,16 +1,23 @@
-"""Streamlit app: ranked ghat list, traceable readings, downloadable Hindi/English brief."""
+"""Visarjan Ghat Watch: one page for the BMC officer. What to send where, before Durga visarjan."""
 from __future__ import annotations
 
-import altair as alt
+from datetime import date
+
 import pandas as pd
 import streamlit as st
 
-from visarjan.brief import to_html, to_markdown
-from visarjan.data import KEY_PARAMS, PHASE_ORDER, load_limits, load_readings
-from visarjan.i18n import LANGS, UI, render_reason
+from visarjan.brief import to_html, top_reasons
+from visarjan.data import KEY_PARAMS, load_limits, load_readings
+from visarjan.i18n import APP, LANGS, UI, render_reason
 from visarjan.scoring import score_ghats
+from visarjan.summary import latest_check
 
-st.set_page_config(page_title="Visarjan Ghat Watch", page_icon="🌊", layout="wide")
+VISARJAN = date(2026, 10, 20)
+ICON = {"high": "🔴", "medium": "🟠", "low": "🟢"}
+LIMIT_TEXT = {"pH": "6.5–8.5", "Dissolved oxygen": "≥ 5 mg/l", "BOD": "≤ 3 mg/l"}
+MARK = {"ok": "✅", "violation": "❌", "missing": "⬜"}
+
+st.set_page_config(page_title="Visarjan Ghat Watch", page_icon="🌊", layout="centered")
 
 
 @st.cache_data
@@ -20,102 +27,78 @@ def _load():
 
 readings, limits = _load()
 
-with st.sidebar:
-    lang = st.radio("Language / भाषा", list(LANGS), format_func=LANGS.get, horizontal=True)
-    ui = UI[lang]
-    fest_opts = [None, "Durga", "Ganesh"]
-    festival = st.selectbox(
-        ui["scope"], fest_opts,
-        format_func=lambda f: ui["scope_all"] if f is None else ui["festival"][f])
-    all_years = sorted(readings["year"].unique().tolist())
-    years = st.multiselect(ui["years"], all_years, default=all_years)
+lang = st.radio("Language / भाषा", list(LANGS), format_func=LANGS.get, horizontal=True, label_visibility="collapsed")
+ui, app = UI[lang], APP[lang]
 
 st.title(f"🌊 {ui['title']}")
-st.caption(ui["subtitle"])
+left = (VISARJAN - date.today()).days
+if left > 0:
+    st.error(app["days_left"].format(n=left), icon="⏳")
+elif left == 0:
+    st.error(app["days_today"], icon="⏳")
+st.write(app["tagline"])
 
-results = score_ghats(readings, limits, festival, years or None)
-if not results:
-    st.warning(ui["no_data"])
-    st.stop()
+with_ganesh = st.checkbox(app["incl_ganesh"], value=False)
+results = score_ghats(readings, limits, None if with_ganesh else "Durga")
 
-# ---- ranking -------------------------------------------------------------------------------
-icon = {"high": "🔴", "medium": "🟠", "low": "🟢"}
-table = pd.DataFrame([{
-    ui["rank"]: g.rank,
-    ui["ghat"]: g.site,
-    ui["water_body"]: g.water_body,
-    ui["risk"]: f"{icon[g.tier]} {ui['tier'][g.tier]}",
-    ui["score"]: g.score,
-    ui["confidence"]: ("⚠️ " + ui["conf_low"]) if g.low_confidence else ui["conf_ok"],
-    ui["actions"]: " / ".join(ui["action"][a].rstrip(".।") for a in g.actions),
-} for g in results])
-st.dataframe(
-    table, hide_index=True, width="stretch",
-    column_config={ui["score"]: st.column_config.ProgressColumn(
-        ui["score"], min_value=0, max_value=100, format="%.0f")})
+# ---- 1. work list: what to dispatch where ---------------------------------------------------
+st.header(app["dispatch_title"])
+cols = st.columns(3)
+for col, action in zip(cols, ("clean", "aerate", "retest")):
+    with col, st.container(border=True):
+        st.markdown(f"**{app['list'][action]}**")
+        names = [f"{g.rank}. {g.site.split(' (')[0].split(' /')[0]}" + (" ⚠️" if g.low_confidence and action == "retest" else "")
+                 for g in results if action in g.actions]
+        st.markdown("\n".join(f"- {n}" for n in names) if names else f"_{app['none']}_")
+st.caption("⚠️ = " + app["gap_mark"])
 
-# ---- brief downloads -----------------------------------------------------------------------
-c1, c2, c3 = st.columns(3)
-c1.download_button("⬇️ Brief (हिन्दी + English, HTML → print/PDF)",
-                   to_html(results, ("en", "hi"), festival, years or None),
-                   "visarjan_brief.html", "text/html")
-c2.download_button("⬇️ English (Markdown)", to_markdown(results, "en", festival, years or None),
-                   "visarjan_brief_en.md", "text/markdown")
-c3.download_button("⬇️ हिन्दी (Markdown)", to_markdown(results, "hi", festival, years or None),
-                   "visarjan_brief_hi.md", "text/markdown")
+st.download_button(f"⬇️ {app['download']}",
+                   to_html(results, ("en", "hi"), None if with_ganesh else "Durga"),
+                   "visarjan_brief.html", "text/html", type="primary")
 
-# ---- ghat detail ---------------------------------------------------------------------------
+# ---- 2. ranked ghats ------------------------------------------------------------------------
+st.header(app["ranking_title"])
+for g in results:
+    with st.container(border=True):
+        head, badge = st.columns([3, 1])
+        head.markdown(f"### {g.rank}. {g.site}")
+        head.caption(g.water_body)
+        badge.markdown(f"### {ICON[g.tier]} {ui['tier'][g.tier]}")
+        badge.caption(f"{ui['score']}: {g.score:.0f}/100")
+
+        for r in top_reasons(g):
+            st.markdown(f"- {render_reason(r, lang)}")
+        st.markdown("**" + ui["actions"] + ":** " + " · ".join(ui["action"][a].rstrip(".।") for a in g.actions))
+
+        # latest Durga test vs the limits: the figures the officer can quote
+        year, table = latest_check(readings, limits, g.site, "Durga")
+        fest_name = ui["festival"]["Durga"]
+        if year is None:
+            st.info(app["latest_none"].format(festival=fest_name))
+        else:
+            st.markdown(f"**{app['latest_title'].format(festival=fest_name, year=year)}**")
+            df = pd.DataFrame({
+                app["col_param"]: [ui["param"][p] for p in table],
+                app["limit_row"]: [LIMIT_TEXT[p] for p in table],
+                **{ui["phase"][ph]: [f"{MARK[table[p][ph][1]]} {table[p][ph][0]}" for p in table]
+                   for ph in ("pre", "during", "after")},
+            })
+            st.dataframe(df, hide_index=True, width="stretch")
+
+        with st.expander(app["all_readings"]):
+            raw = readings[(readings["site"] == g.site) & readings["parameter"].isin(KEY_PARAMS)
+                           & ((readings["festival"] == "Durga") | with_ganesh)].sort_values(
+                ["year", "festival", "parameter", "phase"])
+            out = pd.DataFrame({
+                app["col_param"]: raw["parameter"].map(ui["param"]),
+                app["col_year"]: raw["year"],
+                app["col_festival"]: raw["festival"].map(ui["festival"]),
+                app["col_phase"]: raw["phase"].astype(str).map(ui["phase"]),
+                app["col_value"]: raw["value_as_printed"].fillna("-"),
+                app["col_state"]: raw["status"].map(app["state"]),
+                app["col_page"]: raw["source_page"],
+            })
+            st.dataframe(out, hide_index=True, width="stretch")
+
 st.divider()
-by_name = {g.site: g for g in results}
-site = st.selectbox(ui["ghat"], list(by_name))
-g = by_name[site]
-st.subheader(f"{icon[g.tier]} {g.site} - {ui['tier'][g.tier]} ({g.score:.0f}/100)")
-left, right = st.columns([1, 1])
-with left:
-    st.markdown(f"**{ui['why']}**")
-    for r in g.reasons:
-        st.markdown(f"- {render_reason(r, lang)}")
-with right:
-    st.markdown(f"**{ui['actions']}**")
-    for a in g.actions:
-        st.markdown(f"- {ui['action'][a]}")
-    st.caption(f"{ui['confidence']}: {g.coverage:.0%} "
-               f"({g.n_expected_readings - g.n_missing_readings}/{g.n_expected_readings})")
-
-site_df = readings[(readings["site"] == site) & readings["parameter"].isin(KEY_PARAMS)].copy()
-if festival:
-    site_df = site_df[site_df["festival"] == festival]
-if years:
-    site_df = site_df[site_df["year"].isin(years)]
-site_df["when"] = (site_df["year"].astype(str) + " " + site_df["festival"] + " "
-                   + site_df["phase"].astype(str))
-order = [f"{y} {f} {p}" for y in sorted(site_df["year"].unique()) for f in ("Ganesh", "Durga")
-         for p in PHASE_ORDER if f"{y} {f} {p}" in set(site_df["when"])]
-
-param = st.selectbox("Parameter", KEY_PARAMS, format_func=lambda p: ui["param"][p])
-pdf = site_df[(site_df["parameter"] == param) & (site_df["status"] == "value")]
-lim = limits[param]
-base = alt.Chart(pdf).encode(
-    x=alt.X("when:N", sort=order, title=None, axis=alt.Axis(labelAngle=-60)),
-    y=alt.Y("value:Q", title=f"{ui['param'][param]}"),
-    tooltip=["when", "value", "source_page"])
-layers = [base.mark_line(color="#667085", opacity=0.4, point=False),
-          base.mark_point(size=80, filled=True, color="#175cd3")]
-for v in (lim.lo, lim.hi):
-    if v is not None:
-        layers.append(alt.Chart(pd.DataFrame({"limit": [v]})).mark_rule(color="#b42318", strokeDash=[6, 4])
-                      .encode(y="limit:Q"))
-st.altair_chart(alt.layer(*layers), width="stretch")
-st.caption("Red dashed line = CPCB Class B limit. Gaps in the line are missing readings (never plotted as zero).")
-
-st.markdown("**Raw readings behind every number**")
-raw = site_df[site_df["parameter"] == param][
-    ["year", "festival", "phase", "value", "value_as_printed", "status", "source_page"]]
-st.dataframe(raw.sort_values(["year", "festival", "phase"]), hide_index=True, width="stretch")
-
-# ---- honesty -------------------------------------------------------------------------------
-with st.expander(ui["limitations_title"], expanded=False):
-    for x in ui["limitations"]:
-        st.markdown(f"- {x}")
-    st.markdown(f"**{ui['limits_title']}:** {ui['limits']}")
-    st.markdown(f"**{ui['method_title']}:** {ui['method']}")
+st.caption(app["footer"])
