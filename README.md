@@ -16,9 +16,18 @@ git clone <this-repo-url> && cd visarjan-ghat-watch     # 1. get the code
 pip install -r requirements.txt                          # 2. Python 3.10+
 streamlit run app.py                                     # 3. open the app (language toggle: English / हिन्दी)
 python -m visarjan.cli --festival Durga --lang both --out brief.html   # 4. or write the brief directly
-python -m pytest -q                                      # 5. check the numbers (26 tests)
+python -m pytest -q                                      # 5. check the numbers (27 tests)
 ```
 Open `brief.html` in a browser and print to PDF. A sample is in `examples/brief_durga.html`.
+
+### JavaScript front end (static page, no framework)
+```bash
+python -m visarjan.export                 # scores in Python -> web/data.json + printable briefs
+python -m http.server -d web 8000         # open http://localhost:8000
+```
+`web/` is plain HTML/CSS/JS (`index.html`, `app.js`, `style.css`) that renders `data.json`; it has no build step and can be
+hosted on GitHub Pages. All scoring stays in Python, so both front ends show identical numbers. Re-run the export after
+changing data or scoring.
 
 ## How the ranking works
 Compared against **CPCB Class B (outdoor bathing)** limits read from `data/cpcb_water_quality_criteria.csv`:
@@ -61,6 +70,8 @@ based, no AI/LLM, works offline); source page for every reading; tests against t
 ## Layout
 ```
 app.py                  Streamlit app: one page, work list + ranked ghats
+web/                    static JS front end (index.html, app.js, style.css, data.json)
+visarjan/export.py      writes web/data.json and briefs
 visarjan/data.py        loading, missing-data rules, CPCB limits
 visarjan/scoring.py     scoring, tiers, actions, coverage
 visarjan/brief.py       HTML / Markdown brief       visarjan/i18n.py   English + Hindi text

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visarjan Ghat Watch</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1 id="title">Visarjan Ghat Watch</h1>
+      <div class="lang" role="group" aria-label="Language">
+        <button data-lang="en" class="on">English</button>
+        <button data-lang="hi">हिन्दी</button>
+      </div>
+    </header>
+    <div id="countdown" class="countdown" hidden></div>
+    <p id="tagline"></p>
+    <label class="toggle"><input type="checkbox" id="ganesh"> <span id="ganesh-label"></span></label>
+
+    <h2 id="worklist-title"></h2>
+    <div id="worklist" class="worklist"></div>
+    <a id="brief-link" class="btn" target="_blank" rel="noopener"></a>
+
+    <h2 id="ranking-title"></h2>
+    <div id="ghats"></div>
+    <footer id="footer"></footer>
+  </main>
+  <noscript>This page needs JavaScript.</noscript>
+  <script src="app.js"></script>
+</body>
+</html>

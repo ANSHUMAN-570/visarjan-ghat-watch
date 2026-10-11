@@ -157,3 +157,16 @@ def test_latest_check_uses_newest_festival_test_and_flags_breaches():
     other = [s for s in R.site.unique() if s.startswith("Shahpura")][0]
     assert latest_check(R, L, other, "Durga")[0] == 2025
     assert latest_check(R, L, site, "NoSuchFestival") == (None, {})
+
+
+def test_export_is_valid_json_with_all_ghats_and_both_languages():
+    import json
+    from visarjan.export import build
+    data, briefs = build()
+    json.dumps(data, allow_nan=False)  # no NaN leaks into the front end
+    assert set(briefs) == {"durga", "all"}
+    for key in ("durga", "all"):
+        assert len(data["variants"][key]) == 7
+        for g in data["variants"][key]:
+            assert len(g["reasons_text"]["en"]) == len(g["reasons_text"]["hi"]) == len(g["reasons"])
+            assert g["site"] in data["latest"] and g["site"] in data["readings"]
